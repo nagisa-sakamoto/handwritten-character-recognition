@@ -16,8 +16,8 @@ pipenv run python run.py [-h]
 Options:
     -h, --help              show this help message and exit
     --train-data=<train>    training data in json format
-    --dev-data=<dev>        validation data in json dormat
-    --test-data=<test>      test data in json dormat
+    --dev-data=<dev>        validation data in json format
+    --test-data=<test>      test data in json format
     --initial-model=<model> model path for initializing
     --output-dir=<dir>      output direcrory [default: output]
     --train-batch-size=<N>  batch size for training [default: 16]
