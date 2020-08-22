@@ -12,7 +12,7 @@ def calculate_loss(input_data, reference,\
                     model, criterion, cuda):
     if cuda:
         input_data, reference = input_data.cuda(), reference.cuda()
-    output = model(input_data)
+    output = model(input_data, input_lengths)
     output = F.log_softmax(output, dim=-1)
     output = output.transpose(0, 1) #frameN x batchN x referenceDim
     loss = criterion(output.float(), reference, input_lengths, reference_lengths)
