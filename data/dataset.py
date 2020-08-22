@@ -37,18 +37,19 @@ class ImageDataset(Dataset):
             img = img.convert('L')
             img = ImageOps.invert(img)
         data = np.asarray(img)
+        data = np.pad(data,[(0,0),(self.stride, self.stride)], "constant")
         if data.dtype == np.uint8:
             data = (data/255).astype(np.float32)
-        feature_map = data[np.newaxis, :, :self.feature_map_size[1]]
-        for index in range(self.stride, data.shape[1], self.stride):
+        feature_map = np.empty((0, self.feature_map_size[0], self.feature_map_size[1]), np.float32)
+        for index in range(0, data.shape[1], self.stride):
             if index+self.feature_map_size[1] > data.shape[1]:
                 remind = data.shape[1] - index
                 added_data = np.zeros(self.feature_map_size, dtype=np.float32)
                 added_data[:, :remind] = data[:, index:]
-                feature_map = np.vstack([feature_map, added_data[np.newaxis, :, :]])
+                feature_map = np.append(feature_map, added_data[np.newaxis, :, :], axis=0)
                 break
             else:
-                feature_map = np.vstack([feature_map, data[np.newaxis, :, index:index+self.feature_map_size[1]]])
+                feature_map = np.append(feature_map, data[np.newaxis, :, index:index+self.feature_map_size[1]], axis=0)
         return torch.FloatTensor(feature_map)
 
 
