@@ -30,11 +30,11 @@ Options:
 An example for training with number images in [ETL6](http://etlcdb.db.aist.go.jp/?lang=ja)
 ```
 pipenv run python run.py \
-        --train-data example/number_train.json \
-        --dev-data example/number_dev.json\
-        --test-data example/number_test.json\
-        --output-dir example \
-        --target example/label.json
+        --train-data example/number/number_train.json \
+        --dev-data example/number/number_dev.json\
+        --test-data example/number/number_test.json\
+        --output-dir examplenumber \
+        --target example/number/label.json
 ```
 - Trained model: [example/CnnLstmModel_checkpoint_best.pth](example/CnnLstmModel_checkpoint_best.pth)
 - Test result: [example/test_result.json](example/test_result.json)
