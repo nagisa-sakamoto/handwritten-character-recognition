@@ -1,10 +1,12 @@
 import Levenshtein
-from data.dataset import ImageDataset, ImageDataLoader
 import torch.nn.functional as F
 import re
 from tqdm import tqdm
 import json
 import os
+
+from data.image_dataset import ImageDataset
+from data.image_data_loader import ImageDataLoader
 
 def evaluate(model, test_data, targets, output_dir, batch_size=1, verbose=False):
     model.eval()
@@ -21,7 +23,7 @@ def evaluate(model, test_data, targets, output_dir, batch_size=1, verbose=False)
             split_refs.append(split_ref)
             offset += size
 
-        output = model(input_data, input_lengths)
+        output, _ = model(input_data, input_lengths)
         output = F.softmax(output, dim=-1)
         output = output.to('cpu').detach().numpy().copy()
         max_index = output.argmax(axis=2)

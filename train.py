@@ -4,7 +4,8 @@ import torch.nn.functional as F
 import os
 from tqdm import tqdm
 
-from data.dataset import ImageDataset, ImageDataLoader
+from data.image_dataset import ImageDataset
+from data.image_data_loader import ImageDataLoader
 
 
 def calculate_loss(input_data, reference,\
@@ -12,18 +13,32 @@ def calculate_loss(input_data, reference,\
                     model, criterion, cuda):
     if cuda:
         input_data, reference = input_data.cuda(), reference.cuda()
-    output = model(input_data, input_lengths)
+    output, output_lengths = model(input_data, input_lengths)
     output = F.log_softmax(output, dim=-1)
     output = output.transpose(0, 1) #frameN x batchN x referenceDim
-    loss = criterion(output.float(), reference, input_lengths, reference_lengths)
+    loss = criterion(output.float(), reference, output_lengths, reference_lengths)
     return loss
+
+
+def check_loss(loss, loss_value):
+    loss_valid = True
+    if loss_value == float("inf") or loss_value == float("-inf"):
+        loss_valid = False
+        print("WARNING: received an inf loss")
+    elif torch.isnan(loss).sum() > 0:
+        loss_valid = False
+        print('WARNING: received a nan loss, setting loss value to 0')
+    elif loss_value < 0:
+        loss_valid = False
+        print("WARNING: received a negative loss")
+    return loss_valid
 
 
 def train(model, train_data, targets, output_dir,\
             dev_data=None, cuda=False,\
             batch_size=16, n_epochs=30,\
             learning_rate=0.0001, learning_rate_factor=0.5):
-    criterion = CTCLoss(blank=targets.index('_'))
+    criterion = CTCLoss(blank=targets.index('_'), zero_infinity=True)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=learning_rate_factor, patience=1)
     train_loader = ImageDataLoader(ImageDataset(train_data, targets), batch_size=batch_size)
@@ -41,10 +56,13 @@ def train(model, train_data, targets, output_dir,\
             loss = calculate_loss(input_data, reference, input_lengths, reference_lengths, model, criterion, cuda)
             if cuda:
                 loss = loss.cuda()
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-            train_loss += loss.item()
+            loss_value = loss.item()
+            if check_loss(loss, loss_value):
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+                train_loss += loss_value
+            #print(loss_value)
         train_loss /= len(train_loader)
         print('Train Loss: {:.6f}'.format(train_loss))
         output_file = os.path.join(output_dir, f'{model.__class__.__name__}_checkpoint_epoch{epoch+1}.pth')

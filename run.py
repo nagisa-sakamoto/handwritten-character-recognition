@@ -34,6 +34,7 @@ import torch
 import os
 
 from model.cnn_lstm_model import CnnLstmModel
+from model.cnn_lstm_e2e_model import CnnLstmE2EModel
 from train import train
 from test import evaluate
 
@@ -43,7 +44,7 @@ def main(args):
     with open(args['--target']) as fi:
         targets = json.load(fi)
         targets = ''.join(targets)
-    model = CnnLstmModel(targets=targets)
+    model = CnnLstmE2EModel(targets=targets)
     if args['--initial-model']:
         print(f'Initialize the model: {args["--initial-model"]}')
         model.load_state_dict(torch.load(args['--initial-model']))
