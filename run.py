@@ -42,6 +42,7 @@ from test import evaluate
 
 
 def main(args):
+    print(args)
     targets = '_'
     with open(args['--target']) as fi:
         targets = json.load(fi)
@@ -64,8 +65,8 @@ def main(args):
                 batch_size=int(args['--train-batch-size']),
                 n_epochs=int(args['--epochs']),
                 learning_rate=float(args['--learning-rate']),
-                learning_rate_factor=float(args['--learning-rate-factor'],
-                cuda=args['--gpu']))
+                learning_rate_factor=float(args['--learning-rate-factor']),
+                cuda=args['--gpu'])
         print('-- Finish Training')
     if args['--test-data']:
         best_model = os.path.join(args['--output-dir'], f'{model.__class__.__name__}_checkpoint_best.pth')
