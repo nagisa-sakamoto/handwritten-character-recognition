@@ -11,6 +11,7 @@ pipenv run python run.py [-h]
                         [--test-batch-size=<M>]
                         [--epochs=<K>]
                         [--learning-rate=<R>]
+                        [--gpu]
                         --target=<target>
 
 Options:
@@ -22,8 +23,9 @@ Options:
     --output-dir=<dir>      output direcrory [default: output]
     --train-batch-size=<N>  batch size for training [default: 16]
     --test-batch-size=<M>   batch size for test [default: 1]
-    --epochs=<K>            number of training epoch [default: 20]
-    --learning-rate=<R>     learning rate [default: 0.01]
+    --epochs=<K>            number of training epoch [default: 30]
+    --learning-rate=<R>     learning rate [default: 0.0001]
+    --gpu                   whether to use GPU or not [default: False]
     --traget=<target>       target labels in joson format
 ```
 ### example
