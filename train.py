@@ -8,9 +8,13 @@ from data.image_dataset import ImageDataset
 from data.image_data_loader import ImageDataLoader
 
 
-def calculate_loss(input_data, reference,\
-                    input_lengths, reference_lengths,\
-                    model, criterion, cuda):
+def calculate_loss(input_data,
+                    reference,
+                    input_lengths,
+                    reference_lengths,
+                    model,
+                    criterion,
+                    cuda):
     if cuda:
         input_data, reference = input_data.cuda(), reference.cuda()
     output, output_lengths = model(input_data, input_lengths)
@@ -34,10 +38,16 @@ def check_loss(loss, loss_value):
     return loss_valid
 
 
-def train(model, train_data, targets, output_dir,\
-            dev_data=None, cuda=False,\
-            batch_size=16, n_epochs=30,\
-            learning_rate=0.0001, learning_rate_factor=0.5):
+def train(model, 
+            train_data,
+            targets,
+            output_dir,
+            dev_data=None,
+            batch_size=16,
+            n_epochs=30,
+            learning_rate=0.0001,
+            learning_rate_factor=0.5,
+            cuda=False):
     criterion = CTCLoss(blank=targets.index('_'), zero_infinity=True)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=learning_rate_factor, patience=1)

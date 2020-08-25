@@ -12,6 +12,7 @@ Usage:
             [--epochs=<K>]
             [--learning-rate=<R>]
             [--learning-rate-factor=<F>]
+            [--gpu]
             --target=<target>
 
 Options:
@@ -26,6 +27,7 @@ Options:
     --epochs=<K>                number of training epoch [default: 30]
     --learning-rate=<R>         learning rate [default: 0.0001]
     --learning-rate-factor=<F>  attenuation rate of learning rate [default: 0.5]
+    --gpu                       whether to use GPU or not [default: False]
     --traget=<target>           target labels in joson format
 """
 from docopt import docopt
@@ -45,6 +47,8 @@ def main(args):
         targets = json.load(fi)
         targets = ''.join(targets)
     model = CnnLstmE2EModel(targets=targets)
+    if args['--gpu']:
+        model = model.cuda()
     if args['--initial-model']:
         print(f'Initialize the model: {args["--initial-model"]}')
         model.load_state_dict(torch.load(args['--initial-model']))
@@ -52,15 +56,16 @@ def main(args):
         os.makedirs(args['--output-dir'])
     if args['--train-data']:
         print('-- Start Training')
-        train(model=model,\
-                train_data=args['--train-data'],\
-                dev_data=args['--dev-data'],\
-                targets=targets,\
-                output_dir=args['--output-dir'],\
-                batch_size=int(args['--train-batch-size']),\
-                n_epochs=int(args['--epochs']),\
-                learning_rate=float(args['--learning-rate']),\
-                learning_rate_factor=float(args['--learning-rate-factor']))
+        train(model=model,
+                train_data=args['--train-data'],
+                dev_data=args['--dev-data'],
+                targets=targets,
+                output_dir=args['--output-dir'],
+                batch_size=int(args['--train-batch-size']),
+                n_epochs=int(args['--epochs']),
+                learning_rate=float(args['--learning-rate']),
+                learning_rate_factor=float(args['--learning-rate-factor'],
+                cuda=args['--gpu']))
         print('-- Finish Training')
     if args['--test-data']:
         best_model = os.path.join(args['--output-dir'], f'{model.__class__.__name__}_checkpoint_best.pth')
@@ -69,9 +74,9 @@ def main(args):
             model.load_state_dict(torch.load(best_model))
         print('-- Start Test')
         evaluate(model=model,\
-                    test_data=args['--test-data'],\
-                    targets=targets,\
-                    output_dir=args['--output-dir'],\
+                    test_data=args['--test-data'],
+                    targets=targets,
+                    output_dir=args['--output-dir'],
                     batch_size=int(args['--test-batch-size']))
         print('-- Finish Test')
 
