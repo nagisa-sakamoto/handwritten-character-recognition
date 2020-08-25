@@ -23,7 +23,7 @@ Options:
     --train-batch-size=<N>  batch size for training [default: 16]
     --test-batch-size=<M>   batch size for test [default: 1]
     --epochs=<K>            number of training epoch [default: 20]
-    --learning-rate=<R>     learning rate [default: 0.01]
+    --learning-rate=<R>     learning rate [default: 0.0001]
     --traget=<target>       target labels in joson format
 ```
 ### example
