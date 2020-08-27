@@ -13,14 +13,11 @@ def calculate_loss(input_data,
                     input_lengths,
                     reference_lengths,
                     model,
-                    criterion,
-                    cuda):
-    if cuda:
-        input_data, reference = input_data.cuda(), reference.cuda()
+                    criterion):
     output, output_lengths = model(input_data, input_lengths)
     output = F.log_softmax(output, dim=-1)
-    output = output.transpose(0, 1) #frameN x batchN x referenceDim
-    loss = criterion(output.float(), reference, output_lengths, reference_lengths)
+    output_float = output.transpose(0, 1).float() #frameN x batchN x referenceDim
+    loss = criterion(output_float.cpu(), reference.cpu(), output_lengths.cpu(), reference_lengths.cpu())
     return loss
 
 
@@ -47,7 +44,7 @@ def train(model,
             n_epochs=30,
             learning_rate=0.0001,
             learning_rate_factor=0.5,
-            cuda=False):
+            device='cpu'):
     criterion = CTCLoss(blank=targets.index('_'), zero_infinity=True)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=learning_rate_factor, patience=1)
@@ -56,16 +53,16 @@ def train(model,
         dev_loader = ImageDataLoader(ImageDataset(dev_data, targets), batch_size=batch_size)
     else:
         dev_loader = None
-    model.train()
     best_loss = 100
     for epoch in range(n_epochs):
         train_loss = 0
         dev_loss = 0
+        model.train()
         print(f'Train Epoch: {epoch+1} \tLearning Rate: {optimizer.param_groups[0]["lr"]}')
         for batch_idx, (input_data, reference, input_lengths, reference_lengths) in tqdm(enumerate(train_loader)): 
-            loss = calculate_loss(input_data, reference, input_lengths, reference_lengths, model, criterion, cuda)
-            if cuda:
-                loss = loss.cuda()
+            input_data = input_data.to(device)
+            loss = calculate_loss(input_data, reference, input_lengths, reference_lengths, model, criterion)
+            loss = loss.to(device)
             loss_value = loss.item()
             if check_loss(loss, loss_value):
                 optimizer.zero_grad()
@@ -80,9 +77,11 @@ def train(model,
         torch.save(model.state_dict(), output_file)
 
         if dev_loader:
+            model.eval()
             print(f'Validation Epoch: {epoch+1}')
-            for batch_idx, (input_data, reference, input_lengths, reference_lengths) in tqdm(enumerate(dev_loader)): 
-                loss = calculate_loss(input_data, reference, input_lengths, reference_lengths, model, criterion, cuda)
+            for batch_idx, (input_data, reference, input_lengths, reference_lengths) in tqdm(enumerate(dev_loader)):
+                input_data = input_data.to(device)
+                loss = calculate_loss(input_data, reference, input_lengths, reference_lengths, model, criterion)
                 dev_loss += loss.item()
             dev_loss /= len(dev_loader)
             scheduler.step(dev_loss)
@@ -92,6 +91,3 @@ def train(model,
                 print(f'Seve best checkpoint: {output_best_file}')
                 torch.save(model.state_dict(), output_best_file)
                 best_loss = dev_loss
-
-
-
