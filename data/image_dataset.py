@@ -34,7 +34,6 @@ class ImageDataset(Dataset):
             if img.height != self.feature_map_size:
                 img = img.resize(((int(img.width*(self.feature_map_size/img.height)), self.feature_map_size)))
             img = img.convert('L')
-            img = img.point(lambda x: 0 if x < 180 else 255)
             img = ImageOps.invert(img)
         data = np.asarray(img)
         if data.shape[1] < self.feature_map_size:
